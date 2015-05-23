@@ -14,12 +14,12 @@
 
 @import url(https://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
 
-html {
+/*html {
  font-family: 'Open Sans', 'Arial', sans-serif;
  font-size: 18px;
  line-height: 1.6em;
 }
-
+*//*
 body {
 	margin: 0;
 	padding: 0;
@@ -43,14 +43,14 @@ p {
 
 .very-large {
     font-size: 150%;
-}
+}*/
 
 /*
  *
  * Classes for changing location of things
  *
  */
-
+/*
 .left {
     float: left;
 }
@@ -62,14 +62,14 @@ p {
 .center-content {
     text-align: center;
 }
-
+*/
 /*
  *
  * Form elements like input fields and buttons
  *
  */
 
-input[type="text"] {
+/*input[type="text"] {
     font-family: 'Open Sans', 'Arial', sans-sefif;
     font-size: 14px;
 }
@@ -87,7 +87,7 @@ button {
 button:hover {
     border:1px solid #ccc;
 }
-
+*/
 /*
  *
  * Container holding jsPsych content
