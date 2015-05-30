@@ -30,7 +30,7 @@
 
                 trials[i].data = (typeof params.data === 'undefined') ? {} : params.data[i];
                 trials[i].cont_key = params.cont_key || []; // keycode to press to advance screen, default is all keys.
-                console.log(trials[i].timing_trail);
+                
                 // trials[i].choices = params.choices || [];
                 // trials[i].continue_after_response = (typeof params.continue_after_response === 'undefined') ? false : params.continue_after_response;
             }
