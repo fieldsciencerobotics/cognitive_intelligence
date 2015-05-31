@@ -24,7 +24,7 @@
             {% if assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE" %}
                 <div id="ad1_template"></div>                                
             {% else %}
-                <script>
+                <script type="text/javascript">
                     function begin_experiment() {
                         popup = window.open(
                             '{{ server_location }}/consent?hitId={{ hitid }}&assignmentId={{ assignmentid }}&workerId={{ workerid }}', 

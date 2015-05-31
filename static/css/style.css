@@ -25,6 +25,9 @@
     text-align: center;
 }
 
+.memory_image {
+    width: 128px;
+}
 
 #slider {
     margin: 0 auto;

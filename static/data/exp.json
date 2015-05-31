@@ -1,5 +1,11 @@
 {
+    "prt_slider_timing_trials": [160, 200],
+    "prt_slider_timing_response": 6000,
+    "prt_timing_post_trial": 1000,
 
-    "prt-slider-trials": "4",
-    "prt-exp-trials": 5
+    "memory_slider_timing_trials": [160, 200],
+    "memory_slider_timing_response": 6000,
+    "memory_image_timing_response": 2500,
+    "memory_timing_post_trial": 1000,
+    "memory_bird_range": 6
 }

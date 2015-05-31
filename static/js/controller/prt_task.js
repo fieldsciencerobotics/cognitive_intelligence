@@ -1,4 +1,14 @@
-var exp_task = function(exp_configCollection, prt_welcome, prt_dot, prt_intro_instruction, prt_correct, prt_incorrect) {
+/*
+ * 
+ * PRT Task - Experiment
+ * 
+ */
+
+var prt_task_exp = function(exp_configCollection, 
+    prt_welcome, prt_intro_instruction, 
+    response_time, dot, correct, incorrect) {
+
+    console.log(exp_configCollection);
 
     var welcome_block = {
         type: "text",
@@ -7,48 +17,41 @@ var exp_task = function(exp_configCollection, prt_welcome, prt_dot, prt_intro_in
 
     var instructions_block = {
         type: "text",
-        text: prt_intro_instruction
+        text: prt_intro_instruction,
+        timing_post_trial: exp_configCollection.at(0).attributes.prt_timing_post_trial
     };
 
     var slider_function_block1 = {
         type: 'slider',
         timing_trail: [200],
-        timing_response: 6000
+        timing_response: exp_configCollection.at(0).attributes.prt_slider_timing_response
     };
 
     var dot_block = {
         type: "text",
-        text: prt_dot
+        text: dot,
+        timing_post_trial: exp_configCollection.at(0).attributes.prt_timing_post_trial
     };
 
     var slider_function_block2 = {
         type: 'slider',
-        timing_trail: [160, 200],
-        timing_response: 6000
+        timing_trail: exp_configCollection.at(0).attributes.prt_slider_timing_trials,
+        timing_response: exp_configCollection.at(0).attributes.prt_slider_timing_response,
+        timing_post_trial: exp_configCollection.at(0).attributes.prt_timing_post_trial
     };
 
     var correct_block = {
         type: "text",
-        text: prt_correct
+        text: correct
     };
 
     var debrief_block = {
         type: "text",
         text: function() {
-            return "<p>Your average response time was <strong>" +
-                getAverageResponseTime() + "ms</strong>.</p>" +
-                "<p>Press any key to complete the experiment. Thank you!</p>";
+            var template = _.template(response_time);
+            return template({'response_time': getAverageResponseTime()});
         }
     }
-
-    var experiment_blocks = [];
-    experiment_blocks.push(welcome_block);
-    experiment_blocks.push(instructions_block);
-    experiment_blocks.push(slider_function_block1);
-    experiment_blocks.push(dot_block);
-    experiment_blocks.push(slider_function_block2);
-    experiment_blocks.push(correct_block);
-    experiment_blocks.push(debrief_block);
 
     var getAverageResponseTime = function() {
         var trials = jsPsych.data.getTrialsOfType('slider');
@@ -63,6 +66,15 @@ var exp_task = function(exp_configCollection, prt_welcome, prt_dot, prt_intro_in
         }
         return Math.floor(sum_rt / valid_trial_count);
     }
+
+    var experiment_blocks = [];
+    experiment_blocks.push(welcome_block);
+    experiment_blocks.push(instructions_block);
+    experiment_blocks.push(slider_function_block1);
+    experiment_blocks.push(dot_block);
+    experiment_blocks.push(slider_function_block2);
+    experiment_blocks.push(correct_block);
+    experiment_blocks.push(debrief_block);
 
     jsPsych.init({
         display_element: $('#exp_target'),
@@ -84,6 +96,5 @@ var exp_task = function(exp_configCollection, prt_welcome, prt_dot, prt_intro_in
             psiturk.recordTrialData(data);
         }
     });
-
 
 }
