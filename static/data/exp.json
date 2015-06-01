@@ -1,4 +1,17 @@
 {
+    "prt_retry_times": 5,
+    "memory_retry_times" : 5,
+    "meta_retry_times" : 8,
+    "test_retry_times" : 20,
+    "test_priming_retry_times" : 20,
+
+    "prt_min_points": 1,
+    "memory_min_points": 5,
+    "meta_min_points": 5,
+    "test_min_points": 0,
+    "test_priming_points": 0,
+
+
     "prt_slider_timing_trials": [160, 200],
     "prt_slider_timing_response": 6000,
     "prt_timing_post_trial": 1000,

@@ -4,30 +4,43 @@
  * 
  */
 
-var memory_task_exp = function(exp_configCollection, 
-    memory_instruction1, memory_instruction2, memory_bird, memory_images, 
+var memory_task_exp = function(exp_configCollection,
+    memory_instruction1, memory_instruction2, memory_bird, memory_images,
     response_time, star, dot, correct, incorrect) {
 
-    var memory_bird_range = exp_configCollection.at(0).attributes.memory_bird_range;
 
+    //get a random image from the list of bird pics in repository
+    //range of bird images in repo
+    var memory_bird_range = exp_configCollection.at(0).attributes.memory_bird_range;
+    //random pic to be displayed
     var memory_bird_number = Math.floor((Math.random() * memory_bird_range) + 1);
     var memory_image_numbers = [];
 
+    //random list of bird images chosen to be displayed for the trial
     memory_image_numbers.push(memory_bird_number);
-    while(memory_image_numbers.length < 3) {
+    while (memory_image_numbers.length < 3) {
         var val = Math.floor((Math.random() * memory_bird_range) + 1);
-        if ( _.indexOf(memory_image_numbers, val) == -1) {
+        if (_.indexOf(memory_image_numbers, val) == -1) {
             memory_image_numbers.push(val);
         }
     }
     memory_image_numbers = _.shuffle(memory_image_numbers);
 
+    //compile the html templates
     var memory_bird_template = _.template(memory_bird);
-    memory_bird = memory_bird_template({'memory_bird_number': memory_bird_number});
+    memory_bird = memory_bird_template({
+        'memory_bird_number': memory_bird_number
+    });
 
     var memory_images_template = _.template(memory_images);
-    memory_images = memory_images_template({'memory_image_number_1': memory_image_numbers[0], 'memory_image_number_2': memory_image_numbers[1], 'memory_image_number_3': memory_image_numbers[2]});
+    memory_images = memory_images_template({
+        'memory_image_number_1': memory_image_numbers[0],
+        'memory_image_number_2': memory_image_numbers[1],
+        'memory_image_number_3': memory_image_numbers[2]
+    });
 
+
+    //define the blocks of the experiment
     var dot_block = {
         type: "text",
         text: dot,
@@ -66,10 +79,10 @@ var memory_task_exp = function(exp_configCollection,
         type: "single-stim",
         stimuli: [memory_images],
         is_html: true,
-        timing_response: exp_configCollection.at(0).attributes.memory_image_timing_response+10000,
+        timing_response: exp_configCollection.at(0).attributes.memory_image_timing_response + 10000,
         timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial,
         choices: [49, 50, 51]
-        // response_ends_trial: false
+            // response_ends_trial: false
     };
 
     var star_block = {
@@ -80,23 +93,12 @@ var memory_task_exp = function(exp_configCollection,
     var response_block = {
         type: "text",
         text: function() {
-            var trials = jsPsych.data.getTrialsOfType('single-stim');
-
-            var re = /(\d.jpg)/gi
-            var num = (trials[0].stimulus).match(re);
-
-            var image_num = parseInt(num[0].toLowerCase().replace('.jpg', ''), 10);
-            var key_press = parseInt(String.fromCharCode(trials[1].key_press), 10) - 1;
-
-            num = (trials[1].stimulus).match(re);
-            console.log(image_num, num, trials[1], key_press);
-
-            var choice = parseInt(num[key_press].toLowerCase().replace('.jpg', ''), 10);
-            console.log(choice);
-
-            if (image_num == choice) {
+            //if user choses the right image then display the correct template
+            if (getResponse()) {
                 return correct;
-            } else {
+            }
+            //else display the incorrect template
+            else {
                 return incorrect;
             }
         }
@@ -106,10 +108,37 @@ var memory_task_exp = function(exp_configCollection,
         type: "text",
         text: function() {
             var template = _.template(response_time);
-            return template({'response_time': getAverageResponseTime()});
+            return template({
+                'response_time': getAverageResponseTime()
+            });
         }
     }
 
+    //if the user chose the right image then return true
+    //else return false
+    var getResponse = function() {
+
+        var trials = jsPsych.data.getTrialsOfType('single-stim');
+
+        //get the image number of the bird displayed
+        var re = /(\d.jpg)/gi
+        var num = (trials[0].stimulus).match(re);
+        var image_num = parseInt(num[0].toLowerCase().replace('.jpg', ''), 10);
+
+        //get the image number chosen by the user
+        var key_press = parseInt(String.fromCharCode(trials[1].key_press), 10) - 1;
+        num = (trials[1].stimulus).match(re);
+        var choice = parseInt(num[key_press].toLowerCase().replace('.jpg', ''), 10);
+
+        if (image_num == choice) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //function to compute the average response time 
+    //for trials where handle was clicked
     var getAverageResponseTime = function() {
         var trials = jsPsych.data.getTrialsOfType('slider');
 
@@ -124,10 +153,12 @@ var memory_task_exp = function(exp_configCollection,
         return Math.floor(sum_rt / valid_trial_count);
     }
 
+
+    //blocks of the experiment
     var experiment_blocks = [];
     experiment_blocks.push(dot_block);
     experiment_blocks.push(instructions_block1);
-    experiment_blocks.push(bird_block);    
+    experiment_blocks.push(bird_block);
     experiment_blocks.push(slider_function_block);
     experiment_blocks.push(instructions_block2);
     experiment_blocks.push(images_block);
@@ -141,14 +172,18 @@ var memory_task_exp = function(exp_configCollection,
         on_finish: function() {
             psiturk.saveData({
                 success: function() {
-                    console.log(jsPsych.data.getData());
-                    if (mode == 'debug') {
-                        // setTimeout(complete(), 1000);
-                    }
-                    // psiturk.completeHIT(); 
+                    // console.log(jsPsych.data.getData());
+                    // if (mode == 'debug') {
+                    //     // setTimeout(complete(), 1000);
+                    // }
+                    // psiturk.completeHIT();
+
+                    //return true if user was successful in all the trials
+                    //else return false
+                    return getResponse();
                 },
                 error: function() {
-                    
+
                 }
             });
         },

@@ -8,11 +8,15 @@ var testing_priming_task_exp = function(exp_configCollection,
     memory_bird, memory_images, 
     response_time, star, star_cloud, cloud, dot, correct, incorrect, maybe) {
 
-    var memory_bird_range = exp_configCollection.at(0).attributes.memory_bird_range;
 
+    //get a random image from the list of bird pics in repository
+    //range of bird images in repo
+    var memory_bird_range = exp_configCollection.at(0).attributes.memory_bird_range;
+    //random pic to be displayed
     var memory_bird_number = Math.floor((Math.random() * memory_bird_range) + 1);
     var memory_image_numbers = [];
 
+    //random list of bird images chosen to be displayed for the trial
     memory_image_numbers.push(memory_bird_number);
     while(memory_image_numbers.length < 3) {
         var val = Math.floor((Math.random() * memory_bird_range) + 1);
@@ -22,13 +26,15 @@ var testing_priming_task_exp = function(exp_configCollection,
     }
     memory_image_numbers = _.shuffle(memory_image_numbers);
 
+    //compile the html templates
     var memory_bird_template = _.template(memory_bird);
-    var memory_bird1 = memory_bird_template({'memory_bird_number': Math.floor((Math.random() * memory_bird_range) + 1)});
-    var memory_bird2 = memory_bird_template({'memory_bird_number': memory_bird_number});
+    memory_bird = memory_bird_template({'memory_bird_number': memory_bird_number});
 
     var memory_images_template = _.template(memory_images);
     memory_images = memory_images_template({'memory_image_number_1': memory_image_numbers[0], 'memory_image_number_2': memory_image_numbers[1], 'memory_image_number_3': memory_image_numbers[2]});
 
+    
+    //define the blocks of the experiment
     var dot_block = {
         type: "text",
         text: dot,
@@ -70,6 +76,8 @@ var testing_priming_task_exp = function(exp_configCollection,
         // response_ends_trial: false
     };
 
+    //picl between star, cloud and star_cloud blocks in the below mentioned probabilities
+    //star - 25%, cloud - 25%, star_cloud - 50%
     var star_n_cloud_block = {};
     var val = Math.floor((Math.random() * 4) + 1);
     switch(val) {
@@ -102,38 +110,23 @@ var testing_priming_task_exp = function(exp_configCollection,
         text: function() {
             if (star_n_cloud_block.type == "text") {
                 if(star_n_cloud_block.text == star) {
-                    var trials = jsPsych.data.getTrialsOfType('single-stim');
-                    var re = /(\d.jpg)/gi;
-                    var num = (trials[1].stimulus).match(re);
-                    var image_num = parseInt(num[0].toLowerCase().replace('.jpg', ''), 10);
-
-                    key_press = parseInt(String.fromCharCode(trials[2].key_press), 10) - 1;
-                    num = (trials[2].stimulus).match(re);
-                    var choice = parseInt(num[key_press].toLowerCase().replace('.jpg', ''), 10);
-                    
-                    if (image_num == choice) {
+                    //if the user chose star then check 
+                    //if user chose the right image then display the correct template
+                    //else display the incorrect template
+                    if (getResponse()) {
                         return correct;
                     } else {
                         return incorrect;
                     }
                 } else {
+                    // if the user chose cloud
                     return maybe;
                 }
             } else {
-                var trials = jsPsych.data.getTrialsOfType('single-stim');
-                var key_press = parseInt(String.fromCharCode(trials[2].key_press), 10);
-
-                if(key_press == 1) {
-                    var re = /(\d.jpg)/gi;
-                    var num = (trials[1].stimulus).match(re);
-                    var image_num = parseInt(num[0].toLowerCase().replace('.jpg', ''), 10);
-
-                    key_press = parseInt(String.fromCharCode(trials[2].key_press), 10) - 1;
-                    num = (trials[2].stimulus).match(re);
-                    var choice = parseInt(num[key_press].toLowerCase().replace('.jpg', ''), 10);
-                    
-
-                    if (image_num == choice) {
+                if(getConfidence()) {
+                    //if user chose the right image then display the correct template
+                    //else display the incorrect template
+                    if (getResponse()) {
                         return correct;
                     } else {
                         return incorrect;
@@ -153,6 +146,47 @@ var testing_priming_task_exp = function(exp_configCollection,
         }
     }
 
+    //function to check if the user was sure
+    var getConfidence = function() {
+        var trials = jsPsych.data.getTrialsOfType('single-stim');
+        var key_press = parseInt(String.fromCharCode(trials[2].key_press), 10);
+
+        if(key_press == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // function to get the response of the user
+    //if the user chose the right image then return true
+    //else return false
+    var getResponse = function() {
+        
+        var trials = jsPsych.data.getTrialsOfType('single-stim');
+        
+        //get the image number of the bird displayed
+        var re = /(\d.jpg)/gi
+        var num = (trials[0].stimulus).match(re);
+        var image_num = parseInt(num[0].toLowerCase().replace('.jpg', ''), 10);
+
+        //get the image number chosen by the user
+        var choice = -1;
+        if (trials[1].key_press > -1) { //if user responsed
+            var key_press = parseInt(String.fromCharCode(trials[1].key_press), 10) - 1;
+            num = (trials[1].stimulus).match(re);
+            choice = parseInt(num[key_press].toLowerCase().replace('.jpg', ''), 10);
+        }
+
+        if (image_num == choice) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //function to compute the average response time 
+    //for trials where handle was clicked
     var getAverageResponseTime = function() {
         var trials = jsPsych.data.getTrialsOfType('slider');
 
@@ -184,11 +218,48 @@ var testing_priming_task_exp = function(exp_configCollection,
         on_finish: function() {
             psiturk.saveData({
                 success: function() {
-                    console.log(jsPsych.data.getData());
-                    if (mode == 'debug') {
+                    // if (mode == 'debug') {
                         // setTimeout(complete(), 1000);
-                    }
+                    // }
                     // psiturk.completeHIT(); 
+
+                    if (star_n_cloud_block.type == "text") {
+                        if(star_n_cloud_block.text == star) {
+                            //if the user chose star then check 
+                            //if user chose the right image then display the correct template
+                            //else display the incorrect template
+                            if (getResponse()) {
+                                return 1;
+                            } else {
+                                return -1;
+                            }
+                        } else {
+                            // if the user chose cloud
+                            return 2;
+                        }
+                    } else {
+                        if(getConfidence()) {
+                            //if user chose the right image then display the correct template
+                            //else display the incorrect template
+                            if (getResponse()) {
+                                return 1;
+                            } else {
+                                return -1;
+                            }
+                        } else {
+                            return 2;
+                        }
+                    }
+
+                    if (getConfidence()) {
+                        if (getResponse()) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    } else {
+                        return 2;
+                    }
                 },
                 error: function() {
                     

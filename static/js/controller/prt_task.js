@@ -8,8 +8,7 @@ var prt_task_exp = function(exp_configCollection,
     prt_welcome, prt_intro_instruction, 
     response_time, dot, correct, incorrect) {
 
-    console.log(exp_configCollection);
-
+    //define blocks of the experiment
     var welcome_block = {
         type: "text",
         text: prt_welcome
@@ -53,6 +52,8 @@ var prt_task_exp = function(exp_configCollection,
         }
     }
 
+    //function to compute the average response time 
+    //for trials where handle was clicked
     var getAverageResponseTime = function() {
         var trials = jsPsych.data.getTrialsOfType('slider');
 
@@ -67,6 +68,7 @@ var prt_task_exp = function(exp_configCollection,
         return Math.floor(sum_rt / valid_trial_count);
     }
 
+    //blocks in the experiment
     var experiment_blocks = [];
     experiment_blocks.push(welcome_block);
     experiment_blocks.push(instructions_block);
@@ -82,10 +84,27 @@ var prt_task_exp = function(exp_configCollection,
         on_finish: function() {
             psiturk.saveData({
                 success: function() {
-                    if (mode == 'debug') {
-                        setTimeout(complete(), 1000);
+                    // if (mode == 'debug') {
+                    //     setTimeout(complete(), 1000);
+                    // }
+                    // psiturk.completeHIT();
+
+                    //return true if user was successful in all the trials
+                    //else return false
+                    var res = false;
+                    var valid_trial_count = 0;
+                    var trials = jsPsych.data.getTrialsOfType('slider');
+                    for (var i = 0; i < trials.length; i++) {
+                        if (trials[i].r_type == 'handle_clicked') {
+                            valid_trial_count++;
+                        }
                     }
-                    psiturk.completeHIT(); 
+
+                    if (trials.length == valid_trial_count) {
+                        res = true;
+                    }
+
+                    return res;
                 },
                 error: function() {
                     
