@@ -4,14 +4,11 @@
  * 
  */
 
-var testing_task_exp = function(exp_configCollection,
-    memory_bird, memory_images,
-    response_time, star, star_cloud, cloud, dot, correct, incorrect, maybe) {
-
+var testing_task_exp = function(appModel) {
 
     //get a random image from the list of bird pics in repository
     //range of bird images in repo
-    var memory_bird_range = exp_configCollection.at(0).attributes.memory_bird_range;
+    var memory_bird_range = appModel.attributes.exp_configCollection.at(0).attributes.memory_bird_range;
     //random pic to be displayed
     var memory_bird_number = Math.floor((Math.random() * memory_bird_range) + 1);
     var memory_image_numbers = [];
@@ -27,13 +24,13 @@ var testing_task_exp = function(exp_configCollection,
     memory_image_numbers = _.shuffle(memory_image_numbers);
 
     //compile the html templates
-    var memory_bird_template = _.template(memory_bird);
-    memory_bird = memory_bird_template({
+    var memory_bird_template = _.template(appModel.attributes.memory_bird);
+    var memory_bird = memory_bird_template({
         'memory_bird_number': memory_bird_number
     });
 
-    var memory_images_template = _.template(memory_images);
-    memory_images = memory_images_template({
+    var memory_images_template = _.template(appModel.attributes.memory_images);
+    var memory_images = memory_images_template({
         'memory_image_number_1': memory_image_numbers[0],
         'memory_image_number_2': memory_image_numbers[1],
         'memory_image_number_3': memory_image_numbers[2]
@@ -43,32 +40,32 @@ var testing_task_exp = function(exp_configCollection,
     //define the blocks of the experiment
     var dot_block = {
         type: "text",
-        text: dot,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial
+        text: appModel.attributes.dot,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.test_timing_post_trial
     };
 
     var bird_block = {
         type: "single-stim",
         stimuli: [memory_bird],
         is_html: true,
-        timing_response: exp_configCollection.at(0).attributes.memory_image_timing_response,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial,
+        timing_response: appModel.attributes.exp_configCollection.at(0).attributes.test_image_timing_response,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.test_timing_post_trial,
         // response_ends_trial: false
     };
 
     var slider_function_block = {
         type: 'slider',
-        timing_trail: exp_configCollection.at(0).attributes.memory_slider_timing_trials,
-        timing_response: exp_configCollection.at(0).attributes.memory_slider_timing_response,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial
+        timing_trial: appModel.attributes.exp_configCollection.at(0).attributes.test_slider_timing_trials,
+        timing_response: appModel.attributes.exp_configCollection.at(0).attributes.test_slider_timing_response,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.test_timing_post_trial
     };
 
     var images_block = {
         type: "single-stim",
         stimuli: [memory_images],
         is_html: true,
-        // timing_response: exp_configCollection.at(0).attributes.memory_image_timing_response,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial,
+        // timing_response: exp_configCollection.at(0).attributes.test_image_timing_response,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.test_timing_post_trial,
         choices: [49, 50, 51]
             // response_ends_trial: false
     };
@@ -81,24 +78,25 @@ var testing_task_exp = function(exp_configCollection,
         case 1:
             star_n_cloud_block = {
                 type: "text",
-                text: star
+                text: appModel.attributes.star
             }
             break;
         case 2:
             star_n_cloud_block = {
                 type: "text",
-                text: cloud
+                text: appModel.attributes.cloud
             }
             break;
         case 3:
         case 4:
-        default:
             star_n_cloud_block = {
                 type: "single-stim",
-                stimuli: [star_cloud],
+                stimuli: [appModel.attributes.star_cloud],
                 is_html: true,
                 choices: [49, 50]
             };
+            break;
+        default:
             break;
     }
 
@@ -106,30 +104,47 @@ var testing_task_exp = function(exp_configCollection,
         type: "text",
         text: function() {
             if (star_n_cloud_block.type == "text") {
-                if (star_n_cloud_block.text == star) {
+                if (star_n_cloud_block.text[0].match(/star/gi) != null) {
                     //if the user chose star then check 
                     //if user chose the right image then display the correct template
                     //else display the incorrect template
-                    if (getResponse()) {
-                        return correct;
+                    if (getResponse('star')) {
+                        appModel.attributes.test_exp_points++;
+                        appModel.attributes.total_points++;
+                        return appModel.attributes.correct;
                     } else {
-                        return incorrect;
+                        return appModel.attributes.incorrect;
                     }
                 } else {
                     // if the user chose cloud
-                    return maybe;
+                    var prob = Math.floor((Math.random() * 2) + 1);
+                    if (prob == 2) {
+                        appModel.attributes.test_exp_points++;
+                        appModel.attributes.total_points++;
+                    }
+                    return appModel.attributes.maybe;
                 }
             } else {
                 if (getConfidence()) {
                     //if user chose the right image then display the correct template
                     //else display the incorrect template
-                    if (getResponse()) {
-                        return correct;
+                    if (getResponse('star_cloud')) {
+                        var prob = Math.floor((Math.random() * 2) + 1);
+                        if (prob == 2) {
+                            appModel.attributes.test_exp_points++;
+                            appModel.attributes.total_points++;
+                        }
+                        return appModel.attributes.correct;
                     } else {
-                        return incorrect;
+                        return appModel.attributes.incorrect;
                     }
                 } else {
-                    return maybe;
+                    var prob = Math.floor((Math.random() * 2) + 1);
+                    if (prob == 2) {
+                        appModel.attributes.test_exp_points++;
+                        appModel.attributes.total_points++;
+                    }
+                    return appModel.attributes.maybe;
                 }
             }
         }
@@ -138,9 +153,10 @@ var testing_task_exp = function(exp_configCollection,
     var debrief_block = {
         type: "text",
         text: function() {
-            var template = _.template(response_time);
+            var template = _.template(appModel.attributes.response_time);
             return template({
-                'response_time': getAverageResponseTime()
+                'response_time': getAverageResponseTime(),
+                'total_score': appModel.attributes.total_points
             });
         }
     }
@@ -148,7 +164,7 @@ var testing_task_exp = function(exp_configCollection,
     //function to check if the user was sure
     var getConfidence = function() {
         var trials = jsPsych.data.getTrialsOfType('single-stim');
-        var key_press = parseInt(String.fromCharCode(trials[2].key_press), 10);
+        var key_press = String.fromCharCode(trials[trials.length-1].key_press);
 
         if (key_press == 1) {
             return true;
@@ -157,23 +173,32 @@ var testing_task_exp = function(exp_configCollection,
         }
     }
 
-    // function to get the response of the user
+    //function to get the response of the user
     //if the user chose the right image then return true
     //else return false
-    var getResponse = function() {
-
+    var getResponse = function(flag) {
         var trials = jsPsych.data.getTrialsOfType('single-stim');
+
+        var current_trial = 0;
+        if (flag == 'star_cloud') {
+            //consider last three trails
+            current_trial = trials.length - 1;
+        } else {
+            //consider last two trails
+            current_trial = trials.length;
+        }
 
         //get the image number of the bird displayed
         var re = /(\d.jpg)/gi
-        var num = (trials[0].stimulus).match(re);
+        var num = (trials[current_trial - 2].stimulus).match(re);
         var image_num = parseInt(num[0].toLowerCase().replace('.jpg', ''), 10);
 
         //get the image number chosen by the user
         var choice = -1;
-        if (trials[1].key_press > -1) { //if user responsed
-            var key_press = parseInt(String.fromCharCode(trials[1].key_press), 10) - 1;
-            num = (trials[1].stimulus).match(re);
+        if (trials[current_trial - 1].key_press > -1) { //if user responsed
+            var key_press = parseInt(String.fromCharCode(trials[current_trial - 1].key_press), 10) - 1;
+            //-1 because we have to chose the corresponding user choice image in the array
+            num = (trials[current_trial - 1].stimulus).match(re);
             choice = parseInt(num[key_press].toLowerCase().replace('.jpg', ''), 10);
         }
 
@@ -191,7 +216,13 @@ var testing_task_exp = function(exp_configCollection,
 
         var sum_rt = 0;
         var valid_trial_count = 0;
-        for (var i = 0; i < trials.length; i++) {
+
+        var current_trial = 0;
+        if (trials.length > 0) {
+            current_trial = trials.length - appModel.attributes.exp_configCollection.at(0).attributes.test_slider_timing_trials.length;
+        }
+
+        for (var i = current_trial; i < trials.length; i++) {
             if (trials[i].r_type == 'handle_clicked' && trials[i].rt > -1) {
                 sum_rt += trials[i].rt;
                 valid_trial_count++;
@@ -203,7 +234,7 @@ var testing_task_exp = function(exp_configCollection,
     var experiment_blocks = [];
     experiment_blocks.push(dot_block);
     experiment_blocks.push(bird_block);
-    experiment_blocks.push(slider_function_block);
+    // experiment_blocks.push(slider_function_block);
     experiment_blocks.push(images_block);
     experiment_blocks.push(star_n_cloud_block);
     experiment_blocks.push(response_block);
@@ -215,57 +246,74 @@ var testing_task_exp = function(exp_configCollection,
         on_finish: function() {
             psiturk.saveData({
                 success: function() {
-                    // if (mode == 'debug') {
-                    //     setTimeout(complete(), 1000);
+                    // var res = -1;
+                    // if (star_n_cloud_block.type == "text") {
+                    //     if (star_n_cloud_block.text[0].match(/star/gi) != null) {
+                    //         //if the user chose star then check 
+                    //         //if user chose the right image then display the correct template
+                    //         //else display the incorrect template
+                    //         if (getResponse('star')) {
+                    //             res = 1;
+                    //         } else {
+                    //             res = -1;
+                    //         }
+                    //     } else {
+                    //         // if the user chose cloud
+                    //         res = 2;
+                    //     }
+                    // } else {
+                    //     if (getConfidence()) {
+                    //         //if user chose the right image then display the correct template
+                    //         //else display the incorrect template
+                    //         if (getResponse('star_cloud')) {
+                    //             res = 1;
+                    //         } else {
+                    //             res = -1;
+                    //         }
+                    //     } else {
+                    //         res = 2;
+                    //     }
                     // }
-                    // psiturk.completeHIT(); 
 
-                    if (star_n_cloud_block.type == "text") {
-                        if (star_n_cloud_block.text == star) {
-                            //if the user chose star then check 
-                            //if user chose the right image then display the correct template
-                            //else display the incorrect template
-                            if (getResponse()) {
-                                return 1;
-                            } else {
-                                return -1;
-                            }
-                        } else {
-                            // if the user chose cloud
-                            return 2;
-                        }
-                    } else {
-                        if (getConfidence()) {
-                            //if user chose the right image then display the correct template
-                            //else display the incorrect template
-                            if (getResponse()) {
-                                return 1;
-                            } else {
-                                return -1;
-                            }
-                        } else {
-                            return 2;
-                        }
+                    //count the number of times the exp runs
+                    appModel.attributes.test_retry_times++;
+
+                    // if (res == 1) {
+                    //     //the user is confident and correct
+                    //     //award them '1' point
+                    //     appModel.attributes.test_exp_points++;
+                    //     appModel.attributes.total_points++;
+                    // } else if (res == 2) {
+                    //     //the user is not confident
+                    //     //50% of the time award them '1' point and restart the exp
+                    //     var prob = Math.floor((Math.random() * 2) + 1);
+                    //     if (prob == 2) {
+                    //         appModel.attributes.test_exp_points++;
+                    //         appModel.attributes.total_points++;
+                    //     }
+                    //     //50% of the time restart the exp
+                    // } else {
+                    //     //the user is confident and incorrect
+                    //     //restart the exp
+                    // }
+
+                    //total number of trails to run
+                    //after all the trails compute the final award for the participant
+                    //also compute bonus for the person with the highest score
+                    if (appModel.attributes.test_retry_times >= appModel.attributes.exp_configCollection.at(0).attributes.test_retry_times) {
+                        compute_award(appModel);
+                        return;
                     }
 
-                    if (getConfidence()) {
-                        if (getResponse()) {
-                            return 1;
-                        } else {
-                            return -1;
-                        }
-                    } else {
-                        return 2;
-                    }
+                    testing_task_exp(appModel);
                 },
                 error: function() {
-
                 }
             });
         },
         on_data_update: function(data) {
             psiturk.recordTrialData(data);
-        }
+        }   
     });
 
 }

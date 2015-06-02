@@ -4,14 +4,11 @@
  * 
  */
 
-var memory_task_exp = function(exp_configCollection,
-    memory_instruction1, memory_instruction2, memory_bird, memory_images,
-    response_time, star, dot, correct, incorrect) {
-
+var memory_task_exp = function(appModel) {
 
     //get a random image from the list of bird pics in repository
     //range of bird images in repo
-    var memory_bird_range = exp_configCollection.at(0).attributes.memory_bird_range;
+    var memory_bird_range = appModel.attributes.exp_configCollection.at(0).attributes.memory_bird_range;
     //random pic to be displayed
     var memory_bird_number = Math.floor((Math.random() * memory_bird_range) + 1);
     var memory_image_numbers = [];
@@ -27,13 +24,13 @@ var memory_task_exp = function(exp_configCollection,
     memory_image_numbers = _.shuffle(memory_image_numbers);
 
     //compile the html templates
-    var memory_bird_template = _.template(memory_bird);
-    memory_bird = memory_bird_template({
+    var memory_bird_template = _.template(appModel.attributes.memory_bird);
+    var memory_bird = memory_bird_template({
         'memory_bird_number': memory_bird_number
     });
 
-    var memory_images_template = _.template(memory_images);
-    memory_images = memory_images_template({
+    var memory_images_template = _.template(appModel.attributes.memory_images);
+    var memory_images = memory_images_template({
         'memory_image_number_1': memory_image_numbers[0],
         'memory_image_number_2': memory_image_numbers[1],
         'memory_image_number_3': memory_image_numbers[2]
@@ -43,51 +40,51 @@ var memory_task_exp = function(exp_configCollection,
     //define the blocks of the experiment
     var dot_block = {
         type: "text",
-        text: dot,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial
+        text: appModel.attributes.dot,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.memory_timing_post_trial
     };
 
     var instructions_block1 = {
         type: "text",
-        text: memory_instruction1,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial
+        text: appModel.attributes.memory_instruction1,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.memory_timing_post_trial
     };
 
     var bird_block = {
         type: "single-stim",
         stimuli: [memory_bird],
         is_html: true,
-        timing_response: exp_configCollection.at(0).attributes.memory_image_timing_response,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial,
+        timing_response: appModel.attributes.exp_configCollection.at(0).attributes.memory_image_timing_response,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.memory_timing_post_trial,
         // response_ends_trial: false
     };
 
     var slider_function_block = {
         type: 'slider',
-        timing_trail: exp_configCollection.at(0).attributes.memory_slider_timing_trials,
-        timing_response: exp_configCollection.at(0).attributes.memory_slider_timing_response,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial
+        timing_trial: appModel.attributes.exp_configCollection.at(0).attributes.memory_slider_timing_trials,
+        timing_response: appModel.attributes.exp_configCollection.at(0).attributes.memory_slider_timing_response,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.memory_timing_post_trial
     };
 
     var instructions_block2 = {
         type: "text",
-        text: memory_instruction2,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial
+        text: appModel.attributes.memory_instruction2,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.memory_timing_post_trial
     };
 
     var images_block = {
         type: "single-stim",
         stimuli: [memory_images],
         is_html: true,
-        timing_response: exp_configCollection.at(0).attributes.memory_image_timing_response + 10000,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial,
+        timing_response: appModel.attributes.exp_configCollection.at(0).attributes.memory_image_timing_response + 10000,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.memory_timing_post_trial,
         choices: [49, 50, 51]
             // response_ends_trial: false
     };
 
     var star_block = {
         type: "text",
-        text: star,
+        text: appModel.attributes.star,
     };
 
     var response_block = {
@@ -95,11 +92,13 @@ var memory_task_exp = function(exp_configCollection,
         text: function() {
             //if user choses the right image then display the correct template
             if (getResponse()) {
-                return correct;
+                appModel.attributes.mem_exp_points++;
+                appModel.attributes.total_points++;
+                return appModel.attributes.correct;
             }
             //else display the incorrect template
             else {
-                return incorrect;
+                return appModel.attributes.incorrect;
             }
         }
     };
@@ -107,9 +106,10 @@ var memory_task_exp = function(exp_configCollection,
     var debrief_block = {
         type: "text",
         text: function() {
-            var template = _.template(response_time);
+            var template = _.template(appModel.attributes.response_time);
             return template({
-                'response_time': getAverageResponseTime()
+                'response_time': getAverageResponseTime(),
+                'total_score': appModel.attributes.total_points
             });
         }
     }
@@ -117,17 +117,20 @@ var memory_task_exp = function(exp_configCollection,
     //if the user chose the right image then return true
     //else return false
     var getResponse = function() {
-
         var trials = jsPsych.data.getTrialsOfType('single-stim');
+        var current_trial = 0;
+        //consider last two trails
+        current_trial = trials.length;
 
         //get the image number of the bird displayed
         var re = /(\d.jpg)/gi
-        var num = (trials[0].stimulus).match(re);
+        var num = (trials[current_trial - 2].stimulus).match(re);
         var image_num = parseInt(num[0].toLowerCase().replace('.jpg', ''), 10);
 
         //get the image number chosen by the user
-        var key_press = parseInt(String.fromCharCode(trials[1].key_press), 10) - 1;
-        num = (trials[1].stimulus).match(re);
+        var key_press = parseInt(String.fromCharCode(trials[current_trial - 1].key_press), 10) - 1;
+        //-1 because we have to chose the corresponding user choice image in the array
+        num = (trials[current_trial - 1].stimulus).match(re);
         var choice = parseInt(num[key_press].toLowerCase().replace('.jpg', ''), 10);
 
         if (image_num == choice) {
@@ -144,7 +147,13 @@ var memory_task_exp = function(exp_configCollection,
 
         var sum_rt = 0;
         var valid_trial_count = 0;
-        for (var i = 0; i < trials.length; i++) {
+
+        var current_trial = 0;
+        if (trials.length > 0) {
+            current_trial = trials.length - appModel.attributes.exp_configCollection.at(0).attributes.memory_slider_timing_trials.length;
+        }
+
+        for (var i = current_trial; i < trials.length; i++) {
             if (trials[i].r_type == 'handle_clicked' && trials[i].rt > -1) {
                 sum_rt += trials[i].rt;
                 valid_trial_count++;
@@ -170,22 +179,33 @@ var memory_task_exp = function(exp_configCollection,
         display_element: $('#exp_target'),
         experiment_structure: experiment_blocks,
         on_finish: function() {
-            psiturk.saveData({
-                success: function() {
-                    // console.log(jsPsych.data.getData());
-                    // if (mode == 'debug') {
-                    //     // setTimeout(complete(), 1000);
-                    // }
-                    // psiturk.completeHIT();
+            // //return true if user was successful in all the trials
+            // //else return false
+            // var res = getResponse();
 
-                    //return true if user was successful in all the trials
-                    //else return false
-                    return getResponse();
-                },
-                error: function() {
+            //count the number of times the exp runs
+            appModel.attributes.mem_retry_times++;
 
-                }
-            });
+            // //if the user succeeds then award them '1' point 
+            // if (res) {
+            //     appModel.attributes.mem_exp_points++;
+            // }
+
+            //if the user fails the test more than 5 times call exp_fail
+            if (appModel.attributes.mem_retry_times >= appModel.attributes.exp_configCollection.at(0).attributes.mem_retry_times) {
+                exp_fail(appModel);
+                return;
+            }
+
+            //if user reaches '1' point i.e mem_min_points call meta exp
+            if (appModel.attributes.mem_exp_points == appModel.attributes.exp_configCollection.at(0).attributes.mem_min_points) {
+                //call meta exp
+                metacognition_task_exp(appModel);
+            }
+            //else restart the test.
+            else {
+                memory_task_exp(appModel);
+            }
         },
         on_data_update: function(data) {
             psiturk.recordTrialData(data);

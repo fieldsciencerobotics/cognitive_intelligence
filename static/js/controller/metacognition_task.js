@@ -4,15 +4,11 @@
  * 
  */
 
-var metacognition_task_exp = function(exp_configCollection,
-    memory_bird, memory_images,
-    metacognition_instruction,
-    response_time, star_cloud, dot, correct, incorrect, maybe) {
-
+var metacognition_task_exp = function(appModel) {
 
     //get a random image from the list of bird pics in repository
     //range of bird images in repo
-    var memory_bird_range = exp_configCollection.at(0).attributes.memory_bird_range;
+    var memory_bird_range = appModel.attributes.exp_configCollection.at(0).attributes.memory_bird_range;
     //random pic to be displayed
     var memory_bird_number = Math.floor((Math.random() * memory_bird_range) + 1);
     var memory_image_numbers = [];
@@ -28,13 +24,13 @@ var metacognition_task_exp = function(exp_configCollection,
     memory_image_numbers = _.shuffle(memory_image_numbers);
 
     //compile the html templates
-    var memory_bird_template = _.template(memory_bird);
-    memory_bird = memory_bird_template({
+    var memory_bird_template = _.template(appModel.attributes.memory_bird);
+    var memory_bird = memory_bird_template({
         'memory_bird_number': memory_bird_number
     });
 
-    var memory_images_template = _.template(memory_images);
-    memory_images = memory_images_template({
+    var memory_images_template = _.template(appModel.attributes.memory_images);
+    var memory_images = memory_images_template({
         'memory_image_number_1': memory_image_numbers[0],
         'memory_image_number_2': memory_image_numbers[1],
         'memory_image_number_3': memory_image_numbers[2]
@@ -44,45 +40,45 @@ var metacognition_task_exp = function(exp_configCollection,
     //define the blocks of the experiment
     var dot_block = {
         type: "text",
-        text: dot,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial
+        text: appModel.attributes.dot,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.meta_timing_post_trial
     };
 
     var bird_block = {
         type: "single-stim",
         stimuli: [memory_bird],
         is_html: true,
-        timing_response: exp_configCollection.at(0).attributes.memory_image_timing_response,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial,
+        timing_response: appModel.attributes.exp_configCollection.at(0).attributes.meta_image_timing_response,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.meta_timing_post_trial,
         // response_ends_trial: false
     };
 
     var slider_function_block = {
         type: 'slider',
-        timing_trail: exp_configCollection.at(0).attributes.memory_slider_timing_trials,
-        timing_response: exp_configCollection.at(0).attributes.memory_slider_timing_response,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial
+        timing_trial: appModel.attributes.exp_configCollection.at(0).attributes.meta_slider_timing_trials,
+        timing_response: appModel.attributes.exp_configCollection.at(0).attributes.meta_slider_timing_response,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.meta_timing_post_trial
     };
 
     var images_block = {
         type: "single-stim",
         stimuli: [memory_images],
         is_html: true,
-        // timing_response: exp_configCollection.at(0).attributes.memory_image_timing_response,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial,
+        // timing_response: exp_configCollection.at(0).attributes.meta_image_timing_response,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.meta_timing_post_trial,
         choices: [49, 50, 51]
-            // response_ends_trial: false
+        // response_ends_trial: false
     };
 
     var instructions_block = {
         type: "text",
-        text: metacognition_instruction,
-        timing_post_trial: exp_configCollection.at(0).attributes.memory_timing_post_trial
+        text: appModel.attributes.metacognition_instruction,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.meta_timing_post_trial
     };
 
     var star_n_cloud_block = {
         type: "single-stim",
-        stimuli: [star_cloud],
+        stimuli: [appModel.attributes.star_cloud],
         is_html: true,
         choices: [49, 50]
     };
@@ -94,16 +90,23 @@ var metacognition_task_exp = function(exp_configCollection,
             if (getConfidence()) {
                 //if user choses the right image then display the correct template
                 if (getResponse()) {
-                    return correct;
+                    appModel.attributes.meta_exp_points++;
+                    appModel.attributes.total_points++;
+                    return appModel.attributes.correct;
                 }
                 //else display the incorrect template
                 else {
-                    return incorrect;
+                    return appModel.attributes.incorrect;
                 }
             }
             //if the user is not confident then display the half moon template 
             else {
-                return maybe;
+                var prob = Math.floor((Math.random() * 2) + 1);
+                if (prob == 2) {
+                    appModel.attributes.meta_exp_points++;
+                    appModel.attributes.total_points++;
+                }
+                return appModel.attributes.maybe;
             }
         }
     };
@@ -111,9 +114,10 @@ var metacognition_task_exp = function(exp_configCollection,
     var debrief_block = {
         type: "text",
         text: function() {
-            var template = _.template(response_time);
+            var template = _.template(appModel.attributes.response_time);
             return template({
-                'response_time': getAverageResponseTime()
+                'response_time': getAverageResponseTime(),
+                'total_score': appModel.attributes.total_points
             });
         }
     }
@@ -121,7 +125,7 @@ var metacognition_task_exp = function(exp_configCollection,
     //function to check if the user was sure
     var getConfidence = function() {
         var trials = jsPsych.data.getTrialsOfType('single-stim');
-        var key_press = parseInt(String.fromCharCode(trials[2].key_press), 10);
+        var key_press = parseInt(String.fromCharCode(trials[trials.length - 1].key_press), 10);
 
         if (key_press == 1) {
             return true;
@@ -134,19 +138,23 @@ var metacognition_task_exp = function(exp_configCollection,
     //if the user chose the right image then return true
     //else return false
     var getResponse = function() {
-
         var trials = jsPsych.data.getTrialsOfType('single-stim');
+        console.log(trials);
+        var current_trial = 0;
+        //consider last three trails
+        current_trial = trials.length - 1;
 
         //get the image number of the bird displayed
         var re = /(\d.jpg)/gi
-        var num = (trials[0].stimulus).match(re);
+        var num = (trials[current_trial - 2].stimulus).match(re);
         var image_num = parseInt(num[0].toLowerCase().replace('.jpg', ''), 10);
 
         //get the image number chosen by the user
         var choice = -1;
-        if (trials[1].key_press > -1) { //if user responsed
-            var key_press = parseInt(String.fromCharCode(trials[1].key_press), 10) - 1;
-            num = (trials[1].stimulus).match(re);
+        if (trials[current_trial - 1].key_press > -1) { //if user responsed
+            var key_press = parseInt(String.fromCharCode(trials[current_trial - 1].key_press), 10) - 1;
+            //-1 because we have to chose the corresponding user choice image in the array
+            num = (trials[current_trial - 1].stimulus).match(re);
             choice = parseInt(num[key_press].toLowerCase().replace('.jpg', ''), 10);
         }
 
@@ -164,7 +172,13 @@ var metacognition_task_exp = function(exp_configCollection,
 
         var sum_rt = 0;
         var valid_trial_count = 0;
-        for (var i = 0; i < trials.length; i++) {
+
+        var current_trial = 0;
+        if (trials.length > 0) {
+            current_trial = trials.length - appModel.attributes.exp_configCollection.at(0).attributes.meta_slider_timing_trials.length;
+        }
+
+        for (var i = current_trial; i < trials.length; i++) {
             if (trials[i].r_type == 'handle_clicked' && trials[i].rt > -1) {
                 sum_rt += trials[i].rt;
                 valid_trial_count++;
@@ -189,34 +203,59 @@ var metacognition_task_exp = function(exp_configCollection,
         display_element: $('#exp_target'),
         experiment_structure: experiment_blocks,
         on_finish: function() {
-            psiturk.saveData({
-                success: function() {
-                    // if (mode == 'debug') {
-                    //     // setTimeout(complete(), 1000);
-                    // }
-                    // psiturk.completeHIT(); 
+            // // if the user was sure i.e chose star then 
+            // //      if user was successful in all the trials return 1 
+            // //      else return -1 
+            // // else if the user was unsure i.e chose cloud then
+            // //      return 2
+            // var res = -1;
+            // if (getConfidence()) {
+            //     if (getResponse()) {
+            //         res = 1;
+            //     } else {
+            //         res = -1;
+            //     }
+            // } else {
+            //     res = 2;
+            // }
 
-                    // if the user was sure i.e chose star then 
-                    //      if user was successful in all the trials
-                    //          return 1 
-                    //      else
-                    //          return -1 
-                    // else if the user was unsure i.e chose cloud then
-                    //      return 2
-                    if (getConfidence()) {
-                        if (getResponse()) {
-                            return 1;
-                        } else {
-                            return -1;
-                        }
-                    } else {
-                        return 2;
-                    }
-                },
-                error: function() {
+            //count the number of times the exp runs
+            appModel.attributes.meta_retry_times++;
 
-                }
-            });
+            // if (res == 1) {
+            //     //the user is confident and correct
+            //     //award them '1' point
+            //     appModel.attributes.meta_exp_points++;
+            // } else if (res == 2) {
+            //     //the user is not confident
+            //     //50% of the time award them '1' point and restart the exp
+            //     var prob = Math.floor((Math.random() * 2) + 1);
+            //     if (prob == 2) {
+            //         appModel.attributes.meta_exp_points++;
+            //     }
+            //     //50% of the time restart the exp
+            // } else {
+            //     //the user is confident and incorrect
+            //     //restart the exp
+            // }
+
+            //if the user reaches 5 points in 8 trials then call test exp
+            //else call exp_fail
+            //if the number of trails exceed 8 trials then call exp_fail
+            if (appModel.attributes.meta_retry_times >= appModel.attributes.exp_configCollection.at(0).attributes.meta_retry_times) {
+                exp_fail(appModel);
+                return;
+            }
+
+            //if the user reaches five points then call test exp
+            if (appModel.attributes.meta_exp_points == appModel.attributes.exp_configCollection.at(0).attributes.meta_min_points) {
+                //call test exp
+                testing_task_exp(appModel);
+            }
+            //else restart the test.
+            else {
+                metacognition_task_exp(appModel);
+            }
         },
         on_data_update: function(data) {
             psiturk.recordTrialData(data);

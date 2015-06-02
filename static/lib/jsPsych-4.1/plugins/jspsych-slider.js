@@ -19,13 +19,13 @@
             // params enforceArray
             params = jsPsych.pluginAPI.enforceArray(params, ['slider']);
 
-            var trials = new Array(params.timing_trail.length);
+            var trials = new Array(params.timing_trial.length);
             for (var i = 0; i < trials.length; i++) {
                 trials[i] = {};
                 trials[i].type = "slider";
 
                 // timing parameters
-                trials[i].timing_trail = params.timing_trail[i];
+                trials[i].timing_trial = params.timing_trial[i];
                 trials[i].timing_response = params.timing_response || -1; // if -1, then wait for response forever
 
                 trials[i].data = (typeof params.data === 'undefined') ? {} : params.data[i];
@@ -85,11 +85,11 @@
 
             var start_time = (new Date()).getTime();
 
-            //slider handle slide speed - controlled by timing_trail
+            //slider handle slide speed - controlled by timing_trial
             setTimeoutHandlers.push(
                 setInterval(function() {
                     $('#slider').slider('value', $('#slider').slider('option', 'value') + $('#slider').slider('option', 'step'));
-                }, trial.timing_trail)
+                }, trial.timing_trial)
             );
 
             // end trial if time limit is set

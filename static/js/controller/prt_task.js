@@ -4,51 +4,52 @@
  * 
  */
 
-var prt_task_exp = function(exp_configCollection, 
-    prt_welcome, prt_intro_instruction, 
-    response_time, dot, correct, incorrect) {
+var prt_task_exp = function(appModel) {
 
     //define blocks of the experiment
     var welcome_block = {
         type: "text",
-        text: prt_welcome
+        text: appModel.attributes.prt_welcome
     };
 
     var instructions_block = {
         type: "text",
-        text: prt_intro_instruction,
-        timing_post_trial: exp_configCollection.at(0).attributes.prt_timing_post_trial
+        text: appModel.attributes.prt_intro_instruction,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.prt_timing_post_trial
     };
 
     var slider_function_block1 = {
         type: 'slider',
-        timing_trail: [200],
-        timing_response: exp_configCollection.at(0).attributes.prt_slider_timing_response
+        timing_trial: [200],
+        timing_response: appModel.attributes.exp_configCollection.at(0).attributes.prt_slider_timing_response
     };
 
     var dot_block = {
         type: "text",
-        text: dot,
-        timing_post_trial: exp_configCollection.at(0).attributes.prt_timing_post_trial
+        text: appModel.attributes.dot,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.prt_timing_post_trial
     };
 
     var slider_function_block2 = {
         type: 'slider',
-        timing_trail: exp_configCollection.at(0).attributes.prt_slider_timing_trials,
-        timing_response: exp_configCollection.at(0).attributes.prt_slider_timing_response,
-        timing_post_trial: exp_configCollection.at(0).attributes.prt_timing_post_trial
+        timing_trial: appModel.attributes.exp_configCollection.at(0).attributes.prt_slider_timing_trials,
+        timing_response: appModel.attributes.exp_configCollection.at(0).attributes.prt_slider_timing_response,
+        timing_post_trial: appModel.attributes.exp_configCollection.at(0).attributes.prt_timing_post_trial
     };
 
     var correct_block = {
         type: "text",
-        text: correct
+        text: appModel.attributes.correct
     };
 
     var debrief_block = {
         type: "text",
         text: function() {
-            var template = _.template(response_time);
-            return template({'response_time': getAverageResponseTime()});
+            var template = _.template(appModel.attributes.response_time);
+            return template({
+                'response_time': getAverageResponseTime(), 
+                'total_score': appModel.attributes.total_points
+            });
         }
     }
 
@@ -56,14 +57,25 @@ var prt_task_exp = function(exp_configCollection,
     //for trials where handle was clicked
     var getAverageResponseTime = function() {
         var trials = jsPsych.data.getTrialsOfType('slider');
+        console.log(trials)
 
         var sum_rt = 0;
         var valid_trial_count = 0;
-        for (var i = 0; i < trials.length; i++) {
+
+        var current_trial = 0;
+        if (trials.length > 0) {
+            current_trial = trials.length - appModel.attributes.exp_configCollection.at(0).attributes.prt_slider_timing_trials.length;
+        }
+
+        for (var i = current_trial; i < trials.length; i++) {
             if (trials[i].r_type == 'handle_clicked' && trials[i].rt > -1) {
                 sum_rt += trials[i].rt;
                 valid_trial_count++;
             }
+        }
+        if (appModel.attributes.exp_configCollection.at(0).attributes.prt_slider_timing_trials.length == valid_trial_count) {
+            appModel.attributes.prt_exp_points++;
+            appModel.attributes.total_points++; 
         }
         return Math.floor(sum_rt / valid_trial_count);
     }
@@ -82,34 +94,48 @@ var prt_task_exp = function(exp_configCollection,
         display_element: $('#exp_target'),
         experiment_structure: experiment_blocks,
         on_finish: function() {
-            psiturk.saveData({
-                success: function() {
-                    // if (mode == 'debug') {
-                    //     setTimeout(complete(), 1000);
-                    // }
-                    // psiturk.completeHIT();
+            // //if user was successful in all the trials return true 
+            // //else return false
+            // var res = false;
+            // var valid_trial_count = 0;
+            // var trials = jsPsych.data.getTrialsOfType('slider');
+            // var current_trail = 0;
+            // if (trials.length > 0) {
+            //     current_trail = trials.length - appModel.attributes.exp_configCollection.at(0).attributes.prt_slider_timing_trials.length;
+            // }
+            // for (var i = current_trail; i < trials.length; i++) {
+            //     if (trials[i].r_type == 'handle_clicked') {
+            //         valid_trial_count++;
+            //     }
+            // }
+            // if (appModel.attributes.exp_configCollection.at(0).attributes.prt_slider_timing_trials.length == valid_trial_count) {
+            //     res = true;
+            // }
 
-                    //return true if user was successful in all the trials
-                    //else return false
-                    var res = false;
-                    var valid_trial_count = 0;
-                    var trials = jsPsych.data.getTrialsOfType('slider');
-                    for (var i = 0; i < trials.length; i++) {
-                        if (trials[i].r_type == 'handle_clicked') {
-                            valid_trial_count++;
-                        }
-                    }
+            //count the number of times the exp runs
+            appModel.attributes.prt_retry_times++;
 
-                    if (trials.length == valid_trial_count) {
-                        res = true;
-                    }
+            // //if the user succeeds then award them '1' point 
+            // if (res) {
+            //     appModel.attributes.prt_exp_points++;
+            //     appModel.attributes.total_points++;
+            // }
 
-                    return res;
-                },
-                error: function() {
-                    
-                }
-            });
+            //if the user fails the test more than 5 times call exp_fail
+            if (appModel.attributes.prt_retry_times >= appModel.attributes.exp_configCollection.at(0).attributes.prt_retry_times) {
+                exp_fail(appModel);
+                return;
+            }
+
+            //if user reaches '1' point i.e prt_min_points call mem exp
+            if (appModel.attributes.prt_exp_points == appModel.attributes.exp_configCollection.at(0).attributes.prt_min_points) {
+                //call mem exp
+                memory_task_exp(appModel);
+            }
+            //else restart the test.
+            else {
+                prt_task_exp(appModel);
+            }
         },
         on_data_update: function(data) {
             psiturk.recordTrialData(data);
