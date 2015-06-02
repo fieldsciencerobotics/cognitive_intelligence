@@ -73,6 +73,7 @@ var prt_task_exp = function(appModel) {
                 valid_trial_count++;
             }
         }
+        //if the user succeeds then award them '1' point 
         if (appModel.attributes.exp_configCollection.at(0).attributes.prt_slider_timing_trials.length == valid_trial_count) {
             appModel.attributes.prt_exp_points++;
             appModel.attributes.total_points++; 
@@ -94,32 +95,8 @@ var prt_task_exp = function(appModel) {
         display_element: $('#exp_target'),
         experiment_structure: experiment_blocks,
         on_finish: function() {
-            // //if user was successful in all the trials return true 
-            // //else return false
-            // var res = false;
-            // var valid_trial_count = 0;
-            // var trials = jsPsych.data.getTrialsOfType('slider');
-            // var current_trail = 0;
-            // if (trials.length > 0) {
-            //     current_trail = trials.length - appModel.attributes.exp_configCollection.at(0).attributes.prt_slider_timing_trials.length;
-            // }
-            // for (var i = current_trail; i < trials.length; i++) {
-            //     if (trials[i].r_type == 'handle_clicked') {
-            //         valid_trial_count++;
-            //     }
-            // }
-            // if (appModel.attributes.exp_configCollection.at(0).attributes.prt_slider_timing_trials.length == valid_trial_count) {
-            //     res = true;
-            // }
-
             //count the number of times the exp runs
             appModel.attributes.prt_retry_times++;
-
-            // //if the user succeeds then award them '1' point 
-            // if (res) {
-            //     appModel.attributes.prt_exp_points++;
-            //     appModel.attributes.total_points++;
-            // }
 
             //if the user fails the test more than 5 times call exp_fail
             if (appModel.attributes.prt_retry_times >= appModel.attributes.exp_configCollection.at(0).attributes.prt_retry_times) {

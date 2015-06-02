@@ -109,14 +109,19 @@ var testing_task_exp = function(appModel) {
                     //if user chose the right image then display the correct template
                     //else display the incorrect template
                     if (getResponse('star')) {
+                        //the user is confident and correct
+                        //award them '1' point
                         appModel.attributes.test_exp_points++;
                         appModel.attributes.total_points++;
                         return appModel.attributes.correct;
                     } else {
+                        //the user is confident and incorrect
                         return appModel.attributes.incorrect;
                     }
                 } else {
-                    // if the user chose cloud
+                    //the user chose cloud
+                    //the user is not confident
+                    //50% of the time award them '1' point
                     var prob = Math.floor((Math.random() * 2) + 1);
                     if (prob == 2) {
                         appModel.attributes.test_exp_points++;
@@ -129,16 +134,18 @@ var testing_task_exp = function(appModel) {
                     //if user chose the right image then display the correct template
                     //else display the incorrect template
                     if (getResponse('star_cloud')) {
-                        var prob = Math.floor((Math.random() * 2) + 1);
-                        if (prob == 2) {
-                            appModel.attributes.test_exp_points++;
-                            appModel.attributes.total_points++;
-                        }
+                        //the user is confident and correct
+                        //award them '1' point
+                        appModel.attributes.test_exp_points++;
+                        appModel.attributes.total_points++;
                         return appModel.attributes.correct;
                     } else {
+                        //the user is confident and incorrect
                         return appModel.attributes.incorrect;
                     }
                 } else {
+                    //the user is not confident
+                    //50% of the time award them '1' point
                     var prob = Math.floor((Math.random() * 2) + 1);
                     if (prob == 2) {
                         appModel.attributes.test_exp_points++;
@@ -234,7 +241,7 @@ var testing_task_exp = function(appModel) {
     var experiment_blocks = [];
     experiment_blocks.push(dot_block);
     experiment_blocks.push(bird_block);
-    // experiment_blocks.push(slider_function_block);
+    experiment_blocks.push(slider_function_block);
     experiment_blocks.push(images_block);
     experiment_blocks.push(star_n_cloud_block);
     experiment_blocks.push(response_block);
@@ -246,59 +253,11 @@ var testing_task_exp = function(appModel) {
         on_finish: function() {
             psiturk.saveData({
                 success: function() {
-                    // var res = -1;
-                    // if (star_n_cloud_block.type == "text") {
-                    //     if (star_n_cloud_block.text[0].match(/star/gi) != null) {
-                    //         //if the user chose star then check 
-                    //         //if user chose the right image then display the correct template
-                    //         //else display the incorrect template
-                    //         if (getResponse('star')) {
-                    //             res = 1;
-                    //         } else {
-                    //             res = -1;
-                    //         }
-                    //     } else {
-                    //         // if the user chose cloud
-                    //         res = 2;
-                    //     }
-                    // } else {
-                    //     if (getConfidence()) {
-                    //         //if user chose the right image then display the correct template
-                    //         //else display the incorrect template
-                    //         if (getResponse('star_cloud')) {
-                    //             res = 1;
-                    //         } else {
-                    //             res = -1;
-                    //         }
-                    //     } else {
-                    //         res = 2;
-                    //     }
-                    // }
-
                     //count the number of times the exp runs
                     appModel.attributes.test_retry_times++;
 
-                    // if (res == 1) {
-                    //     //the user is confident and correct
-                    //     //award them '1' point
-                    //     appModel.attributes.test_exp_points++;
-                    //     appModel.attributes.total_points++;
-                    // } else if (res == 2) {
-                    //     //the user is not confident
-                    //     //50% of the time award them '1' point and restart the exp
-                    //     var prob = Math.floor((Math.random() * 2) + 1);
-                    //     if (prob == 2) {
-                    //         appModel.attributes.test_exp_points++;
-                    //         appModel.attributes.total_points++;
-                    //     }
-                    //     //50% of the time restart the exp
-                    // } else {
-                    //     //the user is confident and incorrect
-                    //     //restart the exp
-                    // }
-
                     //total number of trails to run
-                    //after all the trails compute the final award for the participant
+                    //after all the trails, compute the final award for the participant
                     //also compute bonus for the person with the highest score
                     if (appModel.attributes.test_retry_times >= appModel.attributes.exp_configCollection.at(0).attributes.test_retry_times) {
                         compute_award(appModel);

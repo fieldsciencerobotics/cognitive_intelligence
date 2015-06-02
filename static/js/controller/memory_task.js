@@ -92,6 +92,7 @@ var memory_task_exp = function(appModel) {
         text: function() {
             //if user choses the right image then display the correct template
             if (getResponse()) {
+                //if the user succeeds then award them '1' point 
                 appModel.attributes.mem_exp_points++;
                 appModel.attributes.total_points++;
                 return appModel.attributes.correct;
@@ -179,17 +180,8 @@ var memory_task_exp = function(appModel) {
         display_element: $('#exp_target'),
         experiment_structure: experiment_blocks,
         on_finish: function() {
-            // //return true if user was successful in all the trials
-            // //else return false
-            // var res = getResponse();
-
             //count the number of times the exp runs
             appModel.attributes.mem_retry_times++;
-
-            // //if the user succeeds then award them '1' point 
-            // if (res) {
-            //     appModel.attributes.mem_exp_points++;
-            // }
 
             //if the user fails the test more than 5 times call exp_fail
             if (appModel.attributes.mem_retry_times >= appModel.attributes.exp_configCollection.at(0).attributes.mem_retry_times) {

@@ -90,6 +90,7 @@ var metacognition_task_exp = function(appModel) {
             if (getConfidence()) {
                 //if user choses the right image then display the correct template
                 if (getResponse()) {
+                    //award them 1 point
                     appModel.attributes.meta_exp_points++;
                     appModel.attributes.total_points++;
                     return appModel.attributes.correct;
@@ -101,6 +102,7 @@ var metacognition_task_exp = function(appModel) {
             }
             //if the user is not confident then display the half moon template 
             else {
+                //50% of the time award them '1' point
                 var prob = Math.floor((Math.random() * 2) + 1);
                 if (prob == 2) {
                     appModel.attributes.meta_exp_points++;
@@ -203,51 +205,19 @@ var metacognition_task_exp = function(appModel) {
         display_element: $('#exp_target'),
         experiment_structure: experiment_blocks,
         on_finish: function() {
-            // // if the user was sure i.e chose star then 
-            // //      if user was successful in all the trials return 1 
-            // //      else return -1 
-            // // else if the user was unsure i.e chose cloud then
-            // //      return 2
-            // var res = -1;
-            // if (getConfidence()) {
-            //     if (getResponse()) {
-            //         res = 1;
-            //     } else {
-            //         res = -1;
-            //     }
-            // } else {
-            //     res = 2;
-            // }
-
             //count the number of times the exp runs
             appModel.attributes.meta_retry_times++;
 
-            // if (res == 1) {
-            //     //the user is confident and correct
-            //     //award them '1' point
-            //     appModel.attributes.meta_exp_points++;
-            // } else if (res == 2) {
-            //     //the user is not confident
-            //     //50% of the time award them '1' point and restart the exp
-            //     var prob = Math.floor((Math.random() * 2) + 1);
-            //     if (prob == 2) {
-            //         appModel.attributes.meta_exp_points++;
-            //     }
-            //     //50% of the time restart the exp
-            // } else {
-            //     //the user is confident and incorrect
-            //     //restart the exp
-            // }
-
             //if the user reaches 5 points in 8 trials then call test exp
             //else call exp_fail
+
             //if the number of trails exceed 8 trials then call exp_fail
             if (appModel.attributes.meta_retry_times >= appModel.attributes.exp_configCollection.at(0).attributes.meta_retry_times) {
                 exp_fail(appModel);
                 return;
             }
 
-            //if the user reaches five points then call test exp
+            //if the user reaches 5 points then call test exp
             if (appModel.attributes.meta_exp_points == appModel.attributes.exp_configCollection.at(0).attributes.meta_min_points) {
                 //call test exp
                 testing_task_exp(appModel);

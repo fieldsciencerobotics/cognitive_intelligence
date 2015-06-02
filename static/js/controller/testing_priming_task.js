@@ -97,6 +97,13 @@ var testing_priming_task_exp = function(appModel) {
             }
             break;
         case 3:
+            star_n_cloud_block = {
+                type: "single-stim",
+                stimuli: [appModel.attributes.star_cloud],
+                is_html: true,
+                choices: [49, 50]
+            };
+            break;
         case 4:
             star_n_cloud_block = {
                 type: "single-stim",
@@ -118,14 +125,19 @@ var testing_priming_task_exp = function(appModel) {
                     //if user chose the right image then display the correct template
                     //else display the incorrect template
                     if (getResponse('star')) {
+                        //the user is confident and correct
+                        //award them '1' point
                         appModel.attributes.test_priming_exp_points++;
                         appModel.attributes.total_points++;
                         return correct;
                     } else {
+                        //the user is confident and incorrect
                         return incorrect;
                     }
                 } else {
-                    // if the user chose cloud
+                    //the user chose cloud
+                    //the user is not confident
+                    //50% of the time award them '1' point
                     var prob = Math.floor((Math.random() * 2) + 1);
                     if (prob == 2) {
                         appModel.attributes.test_priming_exp_points++;
@@ -138,13 +150,18 @@ var testing_priming_task_exp = function(appModel) {
                     //if user chose the right image then display the correct template
                     //else display the incorrect template
                     if (getResponse('star_cloud')) {
+                        //the user is confident and correct
+                        //award them '1' point
                         appModel.attributes.test_priming_exp_points++;
                         appModel.attributes.total_points++;
                         return correct;
                     } else {
+                        //the user is confident and incorrect
                         return incorrect;
                     }
                 } else {
+                    //the user is not confident
+                    //50% of the time award them '1' point
                     var prob = Math.floor((Math.random() * 2) + 1);
                     if (prob == 2) {
                         appModel.attributes.test_priming_exp_points++;
@@ -254,56 +271,8 @@ var testing_priming_task_exp = function(appModel) {
         on_finish: function() {
             psiturk.saveData({
                 success: function() {
-                    // var res = -1;
-                    // if (star_n_cloud_block.type == "text") {
-                    //     if (star_n_cloud_block.text[0].match(/star/gi) != null) {
-                    //         //if the user chose star then check 
-                    //         //if user chose the right image then display the correct template
-                    //         //else display the incorrect template
-                    //         if (getResponse('star')) {
-                    //             res = 1;
-                    //         } else {
-                    //             res = -1;
-                    //         }
-                    //     } else {
-                    //         // if the user chose cloud
-                    //         res = 2;
-                    //     }
-                    // } else {
-                    //     if (getConfidence()) {
-                    //         //if user chose the right image then display the correct template
-                    //         //else display the incorrect template
-                    //         if (getResponse('star_cloud')) {
-                    //             res = 1;
-                    //         } else {
-                    //             res = -1;
-                    //         }
-                    //     } else {
-                    //         res = 2;
-                    //     }
-                    // }
-
                     //count the number of times the exp runs
                     appModel.attributes.test_priming_retry_times++;
-
-                    // if (res == 1) {
-                    //     //the user is confident and correct
-                    //     //award them '1' point
-                    //     appModel.attributes.test_priming_exp_points++;
-                    //     appModel.attributes.total_points++;
-                    // } else if (res == 2) {
-                    //     //the user is not confident
-                    //     //50% of the time award them '1' point and restart the exp
-                    //     var prob = Math.floor((Math.random() * 2) + 1);
-                    //     if (prob == 2) {
-                    //         appModel.attributes.test_priming_exp_points++;
-                    //         appModel.attributes.total_points++;
-                    //     }
-                    //     //50% of the time restart the exp
-                    // } else {
-                    //     //the user is confident and incorrect
-                    //     //restart the exp
-                    // }
 
                     //total number of trails to run
                     //after all the trails compute the final award for the participant
