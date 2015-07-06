@@ -22,8 +22,9 @@ var compute_award = function(appModel) {
 
 //start exp process
 function exp_flow(appModel) {   
-    // prt_task_exp(appModel);
+    prt_task_exp(appModel);
     // memory_task_exp(appModel);
     // metacognition_task_exp(appModel);
     // test_task_exp(appModel);
+    // test_priming_task_exp(appModel);
 }
