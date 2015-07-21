@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Metacognition Task - Experiment
- * 
+ *
  */
 
 var metacognition_task_exp = function(appModel) {
@@ -38,6 +38,11 @@ var metacognition_task_exp = function(appModel) {
 
 
     //define the blocks of the experiment
+    var exp_name_block = {
+        type: "text",
+        text: appModel.attributes.meta_title
+    };
+
     var dot_block = {
         type: "text",
         text: appModel.attributes.dot,
@@ -86,7 +91,7 @@ var metacognition_task_exp = function(appModel) {
     var response_block = {
         type: "text",
         text: function() {
-            //if the user is confident 
+            //if the user is confident
             if (getConfidence()) {
                 //if user choses the right image then display the correct template
                 if (getResponse()) {
@@ -100,7 +105,7 @@ var metacognition_task_exp = function(appModel) {
                     return appModel.attributes.incorrect;
                 }
             }
-            //if the user is not confident then display the half moon template 
+            //if the user is not confident then display the half moon template
             else {
                 //50% of the time award them '1' point
                 var prob = Math.floor((Math.random() * 2) + 1);
@@ -167,7 +172,7 @@ var metacognition_task_exp = function(appModel) {
         }
     }
 
-    //function to compute the average response time 
+    //function to compute the average response time
     //for trials where handle was clicked
     var getAverageResponseTime = function() {
         var trials = jsPsych.data.getTrialsOfType('slider');
@@ -192,6 +197,7 @@ var metacognition_task_exp = function(appModel) {
 
     //blocks of the experiment
     var experiment_blocks = [];
+    experiment_blocks.push(exp_name_block);
     experiment_blocks.push(dot_block);
     experiment_blocks.push(bird_block);
     experiment_blocks.push(slider_function_block);
@@ -220,7 +226,12 @@ var metacognition_task_exp = function(appModel) {
             //if the user reaches 5 points then call test exp
             if (appModel.attributes.meta_exp_points == appModel.attributes.exp_configCollection.at(0).attributes.meta_min_points) {
                 //call test exp
-                testing_task_exp(appModel);
+                appModel.attributes.test_random_val = Math.floor((Math.random() * 2) + 1);
+                if (appModel.attributes.test_random_val == 1) {
+                    testing_task_exp(appModel);
+                } else {
+                    testing_priming_task_exp(appModel);
+                }
             }
             //else restart the test.
             else {

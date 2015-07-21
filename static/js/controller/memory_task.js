@@ -38,6 +38,11 @@ var memory_task_exp = function(appModel) {
 
 
     //define the blocks of the experiment
+    var exp_name_block = {
+        type: "text",
+        text: appModel.attributes.memory_title
+    };
+
     var dot_block = {
         type: "text",
         text: appModel.attributes.dot,
@@ -166,6 +171,7 @@ var memory_task_exp = function(appModel) {
 
     //blocks of the experiment
     var experiment_blocks = [];
+    experiment_blocks.push(exp_name_block);
     experiment_blocks.push(dot_block);
     experiment_blocks.push(instructions_block1);
     experiment_blocks.push(bird_block);

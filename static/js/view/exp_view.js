@@ -10,6 +10,11 @@ require(
         '/static/js/controller/testing_priming_task.js',
         'text',
         'text!header.html',
+        'text!exp/prt_title.html',
+        'text!exp/memory_title.html',
+        'text!exp/meta_title.html',
+        'text!exp/test_title.html',
+        'text!exp/priming_title.html',
         'text!exp/prt_welcome.html',
         'text!exp/prt_intro_instruction.html',
         'text!exp/memory_instruction1.html',
@@ -28,10 +33,12 @@ require(
         'text!exp/exp_fail.html',
         'text!exp/exp_complete.html',
     ],
-    function(ConfigCollection, AppModel, 
+    function(
+        ConfigCollection, AppModel, 
         flow,
         prt_task, memory_task, metacognition_task, testing_task, testing_priming_task,
         text, header,
+        prt_title, memory_title, meta_title, test_title, priming_title,
         prt_welcome, prt_intro_instruction,
         memory_instruction1, memory_instruction2, memory_bird, memory_images,
         metacognition_instruction,
@@ -51,6 +58,13 @@ require(
                     //exp config
                     exp_configCollection : exp_configCollection,
                         
+                    //title
+                    prt_title     : prt_title,
+                    memory_title  : memory_title,
+                    meta_title    : meta_title,
+                    test_title    : test_title,
+                    priming_title : priming_title,
+
                     //prt templates
                     prt_welcome : prt_welcome,
                     prt_intro_instruction : prt_intro_instruction,
@@ -89,6 +103,8 @@ require(
                     meta_retry_times : 0,
                     test_retry_times : 0,
                     test_priming_retry_times : 0,
+
+                    test_random_val : 0,
                 });
 
                 exp_flow(appModel);

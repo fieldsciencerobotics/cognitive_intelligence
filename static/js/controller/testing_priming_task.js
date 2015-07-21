@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Testing Priming Task - Experiment
- * 
+ *
  */
 
 var testing_priming_task_exp = function(appModel) {
@@ -25,7 +25,10 @@ var testing_priming_task_exp = function(appModel) {
 
     //compile the html templates
     var memory_bird_template = _.template(appModel.attributes.memory_bird);
-    var memory_bird = memory_bird_template({
+    var memory_bird1 = memory_bird_template({
+        'memory_bird_number': Math.floor((Math.random() * memory_bird_range) + 1)
+    });
+    var memory_bird2 = memory_bird_template({
         'memory_bird_number': memory_bird_number
     });
 
@@ -36,8 +39,13 @@ var testing_priming_task_exp = function(appModel) {
         'memory_image_number_3': memory_image_numbers[2]
     });
 
-    
+
     //define the blocks of the experiment
+    var exp_name_block = {
+        type: "text",
+        text: appModel.attributes.priming_title
+    };
+
     var dot_block = {
         type: "text",
         text: appModel.attributes.dot,
@@ -121,7 +129,7 @@ var testing_priming_task_exp = function(appModel) {
         text: function() {
             if (star_n_cloud_block.type == "text") {
                 if (star_n_cloud_block.text[0].match(/star/gi) != null) {
-                    //if the user chose star then check 
+                    //if the user chose star then check
                     //if user chose the right image then display the correct template
                     //else display the incorrect template
                     if (getResponse('star')) {
@@ -129,10 +137,10 @@ var testing_priming_task_exp = function(appModel) {
                         //award them '1' point
                         appModel.attributes.test_priming_exp_points++;
                         appModel.attributes.total_points++;
-                        return correct;
+                        return appModel.attributes.correct;
                     } else {
                         //the user is confident and incorrect
-                        return incorrect;
+                        return appModel.attributes.incorrect;
                     }
                 } else {
                     //the user chose cloud
@@ -143,7 +151,8 @@ var testing_priming_task_exp = function(appModel) {
                         appModel.attributes.test_priming_exp_points++;
                         appModel.attributes.total_points++;
                     }
-                    return maybe;
+
+                    return appModel.attributes.maybe;
                 }
             } else {
                 if(getConfidence()) {
@@ -154,10 +163,10 @@ var testing_priming_task_exp = function(appModel) {
                         //award them '1' point
                         appModel.attributes.test_priming_exp_points++;
                         appModel.attributes.total_points++;
-                        return correct;
+                        return appModel.attributes.correct;
                     } else {
                         //the user is confident and incorrect
-                        return incorrect;
+                        return appModel.attributes.incorrect;
                     }
                 } else {
                     //the user is not confident
@@ -167,7 +176,7 @@ var testing_priming_task_exp = function(appModel) {
                         appModel.attributes.test_priming_exp_points++;
                         appModel.attributes.total_points++;
                     }
-                    return maybe;
+                    return appModel.attributes.maybe;
                 }
             }
         }
@@ -176,7 +185,7 @@ var testing_priming_task_exp = function(appModel) {
     var debrief_block = {
         type: "text",
         text: function() {
-            var template = _.template(response_time);
+            var template = _.template(appModel.attributes.response_time);
             return template({
                 'response_time': getAverageResponseTime(),
                 'total_score': appModel.attributes.total_points
@@ -232,7 +241,7 @@ var testing_priming_task_exp = function(appModel) {
         }
     }
 
-    //function to compute the average response time 
+    //function to compute the average response time
     //for trials where handle was clicked
     var getAverageResponseTime = function() {
         var trials = jsPsych.data.getTrialsOfType('slider');
@@ -255,10 +264,11 @@ var testing_priming_task_exp = function(appModel) {
     }
 
     var experiment_blocks = [];
+    experiment_blocks.push(exp_name_block);
     experiment_blocks.push(dot_block);
     experiment_blocks.push(bird_block1);
-    experiment_blocks.push(dot_block); 
-    experiment_blocks.push(bird_block2);   
+    experiment_blocks.push(dot_block);
+    experiment_blocks.push(bird_block2);
     experiment_blocks.push(slider_function_block);
     experiment_blocks.push(images_block);
     experiment_blocks.push(star_n_cloud_block);
@@ -269,25 +279,28 @@ var testing_priming_task_exp = function(appModel) {
         display_element: $('#exp_target'),
         experiment_structure: experiment_blocks,
         on_finish: function() {
-            psiturk.saveData({
-                success: function() {
-                    //count the number of times the exp runs
-                    appModel.attributes.test_priming_retry_times++;
+            //count the number of times the exp runs
+            appModel.attributes.test_retry_times++;
 
-                    //total number of trails to run
-                    //after all the trails compute the final award for the participant
-                    //also compute bonus for the person with the highest score
-                    if (appModel.attributes.test_priming_retry_times >= appModel.attributes.exp_configCollection.at(0).attributes.test_priming_retry_times) {
+            //total number of trails to run
+            //after all the trails compute the final award for the participant
+            //also compute bonus for the person with the highest score
+            if (appModel.attributes.test_retry_times >= appModel.attributes.exp_configCollection.at(0).attributes.test_retry_times) {
+                psiturk.saveData({
+                    success: function() {
                         compute_award(appModel);
-                        return;
+                    },
+                    error: function() {
                     }
-
+                });
+            } else {
+                appModel.attributes.test_random_val = Math.floor((Math.random() * 2) + 1);
+                if (appModel.attributes.test_random_val == 1) {
+                    testing_task_exp(appModel);
+                } else {
                     testing_priming_task_exp(appModel);
-                },
-                error: function() {
-                    
                 }
-            });
+            }
         },
         on_data_update: function(data) {
             psiturk.recordTrialData(data);

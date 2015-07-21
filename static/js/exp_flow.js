@@ -14,17 +14,19 @@ var compute_award = function(appModel) {
 
     //total points 
     //compute bonus
-    var template = _.template(appModel.attributes.exp_complete);
-    $('#exp-target').html(template({
-        'complete_code': 'COMPLETE'
-    }));
+    complete();
+
+    //var template = _.template(appModel.attributes.exp_complete);
+    //$('#exp-target').html(template({
+        //'complete_code': 'COMPLETE'
+    //}));
 };
 
 //start exp process
 function exp_flow(appModel) {   
     prt_task_exp(appModel);
-    // memory_task_exp(appModel);
-    // metacognition_task_exp(appModel);
-    // test_task_exp(appModel);
-    // test_priming_task_exp(appModel);
+    //memory_task_exp(appModel);
+    //metacognition_task_exp(appModel);
+    //test_task_exp(appModel);
+    //testing_priming_task_exp(appModel);
 }

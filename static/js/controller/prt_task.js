@@ -1,12 +1,17 @@
 /*
- * 
+ *
  * PRT Task - Experiment
- * 
+ *
  */
 
 var prt_task_exp = function(appModel) {
 
     //define blocks of the experiment
+    var exp_name_block = {
+        type: "text",
+        text: appModel.attributes.prt_title
+    };
+
     var welcome_block = {
         type: "text",
         text: appModel.attributes.prt_welcome
@@ -47,13 +52,13 @@ var prt_task_exp = function(appModel) {
         text: function() {
             var template = _.template(appModel.attributes.response_time);
             return template({
-                'response_time': getAverageResponseTime(), 
+                'response_time': getAverageResponseTime(),
                 'total_score': appModel.attributes.total_points
             });
         }
     }
 
-    //function to compute the average response time 
+    //function to compute the average response time
     //for trials where handle was clicked
     var getAverageResponseTime = function() {
         var trials = jsPsych.data.getTrialsOfType('slider');
@@ -73,16 +78,17 @@ var prt_task_exp = function(appModel) {
                 valid_trial_count++;
             }
         }
-        //if the user succeeds then award them '1' point 
+        //if the user succeeds then award them '1' point
         if (appModel.attributes.exp_configCollection.at(0).attributes.prt_slider_timing_trials.length == valid_trial_count) {
             appModel.attributes.prt_exp_points++;
-            appModel.attributes.total_points++; 
+            appModel.attributes.total_points++;
         }
         return Math.floor(sum_rt / valid_trial_count);
     }
 
     //blocks in the experiment
     var experiment_blocks = [];
+    experiment_blocks.push(exp_name_block);
     experiment_blocks.push(welcome_block);
     experiment_blocks.push(instructions_block);
     experiment_blocks.push(slider_function_block1);
@@ -108,6 +114,7 @@ var prt_task_exp = function(appModel) {
             if (appModel.attributes.prt_exp_points == appModel.attributes.exp_configCollection.at(0).attributes.prt_min_points) {
                 //call mem exp
                 memory_task_exp(appModel);
+                //testing_priming_task_exp(appModel);
             }
             //else restart the test.
             else {

@@ -7,7 +7,7 @@
 
     "prt_min_points": 1,
     "mem_min_points": 1,
-    "meta_min_points": 2,
+    "meta_min_points": 1,
     "test_min_points": 0,
     "test_priming_points": 0,
 

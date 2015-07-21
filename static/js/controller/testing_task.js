@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Testing Task - Experiment
- * 
+ *
  */
 
 var testing_task_exp = function(appModel) {
@@ -38,6 +38,11 @@ var testing_task_exp = function(appModel) {
 
 
     //define the blocks of the experiment
+    var exp_name_block = {
+        type: "text",
+        text: appModel.attributes.test_title
+    };
+
     var dot_block = {
         type: "text",
         text: appModel.attributes.dot,
@@ -88,6 +93,13 @@ var testing_task_exp = function(appModel) {
             }
             break;
         case 3:
+            star_n_cloud_block = {
+                type: "single-stim",
+                stimuli: [appModel.attributes.star_cloud],
+                is_html: true,
+                choices: [49, 50]
+            };
+            break;
         case 4:
             star_n_cloud_block = {
                 type: "single-stim",
@@ -105,7 +117,7 @@ var testing_task_exp = function(appModel) {
         text: function() {
             if (star_n_cloud_block.type == "text") {
                 if (star_n_cloud_block.text[0].match(/star/gi) != null) {
-                    //if the user chose star then check 
+                    //if the user chose star then check
                     //if user chose the right image then display the correct template
                     //else display the incorrect template
                     if (getResponse('star')) {
@@ -216,7 +228,7 @@ var testing_task_exp = function(appModel) {
         }
     }
 
-    //function to compute the average response time 
+    //function to compute the average response time
     //for trials where handle was clicked
     var getAverageResponseTime = function() {
         var trials = jsPsych.data.getTrialsOfType('slider');
@@ -239,6 +251,7 @@ var testing_task_exp = function(appModel) {
     }
 
     var experiment_blocks = [];
+    experiment_blocks.push(exp_name_block);
     experiment_blocks.push(dot_block);
     experiment_blocks.push(bird_block);
     experiment_blocks.push(slider_function_block);
@@ -251,28 +264,33 @@ var testing_task_exp = function(appModel) {
         display_element: $('#exp_target'),
         experiment_structure: experiment_blocks,
         on_finish: function() {
-            psiturk.saveData({
-                success: function() {
-                    //count the number of times the exp runs
-                    appModel.attributes.test_retry_times++;
+            //count the number of times the exp runs
+            appModel.attributes.test_retry_times++;
 
-                    //total number of trails to run
-                    //after all the trails, compute the final award for the participant
-                    //also compute bonus for the person with the highest score
-                    if (appModel.attributes.test_retry_times >= appModel.attributes.exp_configCollection.at(0).attributes.test_retry_times) {
+            //total number of trails to run
+            //after all the trails, compute the final award for the participant
+            //also compute bonus for the person with the highest score
+            if (appModel.attributes.test_retry_times >= appModel.attributes.exp_configCollection.at(0).attributes.test_retry_times) {
+                psiturk.saveData({
+                    success: function() {
                         compute_award(appModel);
-                        return;
+                    },
+                    error: function() {
                     }
-
+                });
+            }
+            else {
+                appModel.attributes.test_random_val = Math.floor((Math.random() * 2) + 1);
+                if (appModel.attributes.test_random_val == 1) {
                     testing_task_exp(appModel);
-                },
-                error: function() {
+                } else {
+                    testing_priming_task_exp(appModel);
                 }
-            });
+            }
         },
         on_data_update: function(data) {
             psiturk.recordTrialData(data);
-        }   
+        }
     });
 
 }
